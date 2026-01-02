@@ -1,0 +1,74 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: ${APP_NAME}-app
+    user: "1000:1000"
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    ports:
+      - ${PHP_PORT:-9000}:9000
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+
+  nginx:
+    image: nginx:latest
+    container_name: ${APP_NAME}-nginx
+    ports:
+      - ${NGINX_PORT:-81}:80
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+  postgres:
+    hostname: postgres
+    container_name: ${APP_NAME}-db
+    image: postgres:latest
+    ports:
+      - 5433:5432
+    volumes:
+      - app-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    networks:
+      - app-network
+
+  postgres-test:
+    hostname: postgres-test
+    container_name: "${APP_NAME}-db-test"
+    image: postgres:latest
+    ports:
+      - 5434:5432
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}_test
+      - POSTGRES_DB=${DB_DATABASE}_test
+    networks:
+      - app-network
+
+volumes:
+  app-data:
+
+networks:
+  app-network:
+    driver: bridge
