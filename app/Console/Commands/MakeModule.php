@@ -89,7 +89,8 @@ class $module extends Model
 ";
         file_put_contents($baseDir . "/Models/{$module}.php", $modelTemplate);
 
-        $requestTemplate = "<?php
+        $requestTemplate =
+            "<?php
 
 namespace App\\Modules\\$module\\Requests;
 
@@ -108,10 +109,97 @@ class Store{$module}Request extends FormRequest
             // TODO: Add validation rules
         ];
     }
-};
-";
+};";
         file_put_contents($baseDir . "/Requests/Store{$module}Request.php", $requestTemplate);
 
-        $this->info("Module $module created successfully with Controller, Service, Repository, Requests, Models, and routes.php!");
+        $tableName = Str::snake(Str::pluralStudly($module));
+        $timestamp = now()->format('Y_m_d_His');
+
+        $migrationTemplate = "<?php
+
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('$tableName', function (Blueprint \$table) {
+            \$table->id();
+            \$table->string('name');
+            \$table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('$tableName');
+    }
+};
+";
+        file_put_contents(
+            database_path("migrations/{$timestamp}_create_{$tableName}_table.php"),
+            $migrationTemplate
+        );
+
+        $factoryTemplate = "<?php
+
+namespace Database\\Factories;
+
+use Illuminate\\Database\\Eloquent\\Factories\\Factory;
+use App\\Modules\\$module\\Models\\$module;
+
+/**
+ * @extends Factory<$module>
+ */
+class {$module}Factory extends Factory
+{
+    protected \$model = $module::class;
+
+    public function definition(): array
+    {
+        return [
+            'name' => \$this->faker->name(),
+        ];
+    }
+}
+";
+
+        file_put_contents(database_path("factories/{$module}Factory.php"),$factoryTemplate);
+
+        $seederTemplate = "<?php
+
+namespace Database\\Seeders;
+
+use Illuminate\\Database\\Seeder;
+use App\\Modules\\$module\\Models\\$module;
+
+class {$module}Seeder extends Seeder
+{
+    public function run(): void
+    {
+        $module::factory()->count(10)->create();
+    }
+}
+";
+        file_put_contents(database_path("seeders/{$module}Seeder.php"),$seederTemplate);
+
+$databaseSeederPath = database_path('seeders/DatabaseSeeder.php');
+$databaseSeederContent = file_get_contents($databaseSeederPath);
+
+$callLine = "        \$this->call(\\Database\\Seeders\\{$module}Seeder::class);\n";
+
+if (!str_contains($databaseSeederContent, $callLine)) {
+    $databaseSeederContent = preg_replace(
+        '/public function run\(\): void\s*\{\n/',
+        "public function run(): void\n{\n$callLine",
+        $databaseSeederContent
+    );
+
+    file_put_contents($databaseSeederPath, $databaseSeederContent);
+}
+
+        $this->info("Module $module created successfully!");
     }
 }
