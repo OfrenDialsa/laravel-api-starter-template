@@ -166,7 +166,7 @@ class {$module}Factory extends Factory
 }
 ";
 
-        file_put_contents(database_path("factories/{$module}Factory.php"),$factoryTemplate);
+        file_put_contents(database_path("factories/{$module}Factory.php"), $factoryTemplate);
 
         $seederTemplate = "<?php
 
@@ -183,22 +183,113 @@ class {$module}Seeder extends Seeder
     }
 }
 ";
-        file_put_contents(database_path("seeders/{$module}Seeder.php"),$seederTemplate);
+        file_put_contents(database_path("seeders/{$module}Seeder.php"), $seederTemplate);
 
-$databaseSeederPath = database_path('seeders/DatabaseSeeder.php');
-$databaseSeederContent = file_get_contents($databaseSeederPath);
+        $databaseSeederPath = database_path('seeders/DatabaseSeeder.php');
+        $databaseSeederContent = file_get_contents($databaseSeederPath);
 
-$callLine = "        \$this->call(\\Database\\Seeders\\{$module}Seeder::class);\n";
+        $callLine = "        \$this->call(\\Database\\Seeders\\{$module}Seeder::class);\n";
 
-if (!str_contains($databaseSeederContent, $callLine)) {
-    $databaseSeederContent = preg_replace(
-        '/public function run\(\): void\s*\{\n/',
-        "public function run(): void\n{\n$callLine",
-        $databaseSeederContent
-    );
+        if (!str_contains($databaseSeederContent, $callLine)) {
+            $databaseSeederContent = preg_replace(
+                '/public function run\(\): void\s*\{\n/',
+                "public function run(): void\n{\n$callLine",
+                $databaseSeederContent
+            );
 
-    file_put_contents($databaseSeederPath, $databaseSeederContent);
+            file_put_contents($databaseSeederPath, $databaseSeederContent);
+        }
+
+        $testBaseFeature = base_path("tests/Feature/Modules/$module");
+        $testBaseUnit = base_path("tests/Unit/Modules/$module");
+
+        if (!file_exists($testBaseFeature)) {
+            mkdir($testBaseFeature, 0755, true);
+        }
+
+        if (!file_exists($testBaseUnit)) {
+            mkdir($testBaseUnit, 0755, true);
+        }
+
+        $featureTestTemplate = "<?php
+
+namespace Tests\\Feature\\Modules\\$module;
+
+use Tests\\TestCase;
+use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+
+class {$module}ApiTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_{$module}_index_endpoint_returns_success()
+    {
+        \$response = \$this->getJson('/api/" . Str::kebab($module) . "');
+
+        \$response->assertStatus(200)
+            ->assertJsonStructure([
+                'message'
+            ]);
+    }
 }
+";
+        file_put_contents(
+            base_path("tests/Feature/Modules/$module/{$module}ApiTest.php"),
+            $featureTestTemplate
+        );
+
+        $serviceTestTemplate = "<?php
+
+namespace Tests\\Unit\\Modules\\$module;
+
+use Tests\\TestCase;
+use App\\Modules\\$module\\Services\\{$module}Service;
+
+class {$module}ServiceTest extends TestCase
+{
+    public function test_service_example_method_returns_string()
+    {
+        \$service = new {$module}Service();
+
+        \$result = \$service->example();
+
+        \$this->assertEquals('Service for $module', \$result);
+    }
+}
+";
+        file_put_contents(
+            base_path("tests/Unit/Modules/$module/{$module}ServiceTest.php"),
+            $serviceTestTemplate
+        );
+        $repositoryTestTemplate = "<?php
+
+namespace Tests\\Unit\\Modules\\$module;
+
+use Tests\\TestCase;
+use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+use App\\Modules\\$module\\Repositories\\{$module}Repository;
+use App\\Modules\\$module\\Models\\$module;
+
+class {$module}RepositoryTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_repository_can_get_all_data()
+    {
+        $module::factory()->count(3)->create();
+
+        \$repo = new {$module}Repository();
+        \$result = \$repo->all();
+
+        \$this->assertCount(3, \$result);
+    }
+}
+";
+        file_put_contents(
+            base_path("tests/Unit/Modules/$module/{$module}RepositoryTest.php"),
+            $repositoryTestTemplate
+        );
+
 
         $this->info("Module $module created successfully!");
     }
