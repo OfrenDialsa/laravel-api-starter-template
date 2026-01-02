@@ -1,34 +1,51 @@
 <?php
+
 namespace App\Modules\Auth\Services;
 
-use App\Modules\User\Repository\UserRepository;
-use Illuminate\Support\Facades\Hash;
+use App\Modules\Auth\Repositories\AuthRepository;
 use Illuminate\Auth\Events\Registered;
 
 class AuthService
 {
-    protected UserRepository $users;
+    protected AuthRepository $authRepo;
 
-    public function __construct(UserRepository $users)
+    public function __construct(AuthRepository $authRepo)
     {
-        $this->users = $users;
+        $this->authRepo = $authRepo;
     }
 
     public function register(array $data)
     {
-        $user = $this->users->create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        $user = $this->authRepo->register($data);
 
         event(new Registered($user));
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $this->authRepo->generateToken($user);
 
         return [
             'user' => $user,
             'token' => $token,
         ];
+    }
+
+    public function login(string $email, string $password)
+    {
+        $user = $this->authRepo->login($email, $password);
+
+        if (!$user) {
+            throw new \Exception('Invalid credentials');
+        }
+
+        $token = $this->authRepo->generateToken($user);
+
+        return [
+            'user' => $user,
+            'token' => $token,
+        ];
+    }
+
+    public function logout($user)
+    {
+        $this->authRepo->logout($user);
     }
 }

@@ -29,15 +29,15 @@ class Handler extends ExceptionHandler
         });
     }
 
-    public function render($request, Throwable $exception)
+    public function render($request, Throwable $e)
     {
-        // Semua request API yang menerima JSON akan diproses di sini
-        if ($request->expectsJson()) {
-            return $this->handleApiException($exception);
+        // Jika request API / JSON
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return $this->handleApiException($e);
         }
 
-        // Bukan API, pakai default Laravel (HTML)
-        return parent::render($request, $exception);
+        // Fallback ke default Laravel (HTML)
+        return parent::render($request, $e);
     }
 
     /**
@@ -45,7 +45,8 @@ class Handler extends ExceptionHandler
      */
     protected function handleApiException(Throwable $exception): JsonResponse
     {
-        $status = 500;
+        $status = method_exists($exception, 'getStatusCode') ? $exception->getStatusCode() : 500;
+        $message = $exception->getMessage() ?: 'Server Error';
         $errors = null;
 
         if ($exception instanceof ValidationException) {
@@ -61,12 +62,30 @@ class Handler extends ExceptionHandler
         } elseif ($exception instanceof MethodNotAllowedHttpException) {
             $status = 405;
             $message = 'Method not allowed';
-        } else {
-            $status = method_exists($exception, 'getStatusCode') ? $exception->getStatusCode() : 500;
-            $message = $exception->getMessage() ?: 'Server Error';
         }
 
-        return $this->apiErrorResponse($message, $status, $errors);
+        $response = [
+            'status' => $status,
+            'message' => $message,
+        ];
+
+        // Hanya sertakan trace jika APP_DEBUG=true
+        if (config('app.debug')) {
+            $response['trace'] = collect($exception->getTrace())
+                ->map(function ($trace) {
+                    return [
+                        'file' => $trace['file'] ?? null,
+                        'line' => $trace['line'] ?? null,
+                        'function' => $trace['function'] ?? null,
+                    ];
+                })->all();
+        }
+
+        if ($errors) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, $status);
     }
 
     /**

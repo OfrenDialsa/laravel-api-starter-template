@@ -11,11 +11,9 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     // Guest routes
     Route::post('/register', [RegisteredUserController::class, 'store'])
-        ->middleware('guest')
         ->name('register');
 
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])
-        ->middleware('guest')
         ->name('login');
 
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
