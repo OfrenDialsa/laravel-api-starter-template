@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
+        $middleware->api(append: [
+            \App\Http\Middleware\CorsMiddleware::class,
+        ]);
         $middleware->alias([
             'verified' => EnsureEmailIsVerified::class,
             'admin' => RoleMiddleware::class,
