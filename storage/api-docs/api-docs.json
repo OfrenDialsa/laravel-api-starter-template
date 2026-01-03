@@ -1,8 +1,8 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Laravel API Starter Template Documentation",
-        "description": "Centralized documentation for all API endpoints",
+        "title": "Laravel API Professional Starter Template",
+        "description": "\n * ### Overview\n * A high-performance, scalable API engine built with **Laravel**. This template is designed for long-term maintainability using industry best practices.\n * ### Architecture Features\n * **Modular Architecture**: Code is organized by domain modules (Auth, User, etc.) to prevent 'Spaghetti Code'.\n * **Clean Architecture Principles**: Strict separation of concerns between Controllers, Services, and Repositories.\n * **Command-Line Module Generator**: Quickly scaffold new modules with built-in artisan commands.\n * **TDD Ready**: Built with a 'Test-First' mindset using PHPUnit and Pest for high code reliability.\n * ### Security\n * **Sanctum Authentication**: Secure token-based access.\n * **Signed URLs**: Enhanced security for email verification.\n * ### How to use\n * 1. Authorize using the `apiAuth` bearer token.\n * 2. Explore endpoints grouped by module tags below.",
         "contact": {
             "email": "ofrendialsa.dev@gmail.com"
         },

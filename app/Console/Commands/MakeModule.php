@@ -25,7 +25,23 @@ class MakeModule extends Command
 
         $routesFile = $baseDir . "/routes.php";
         if (!file_exists($routesFile)) {
-            file_put_contents($routesFile, "<?php\n\n// Routes for $module module\n");
+            $moduleLower = strtolower($module);
+            $routesContent = "<?php
+
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| $module Module Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('$moduleLower')->group(function () {
+    // Route::get('/', [{$module}Controller::class, 'index']);
+});
+";
+
+            file_put_contents($routesFile, $routesContent);
         }
 
         $controllerTemplate = "<?php
