@@ -25,21 +25,21 @@ class RegisterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'same:password_confirmation'],
-            'password_confirmation' => ['required', 'string'], 
+            'password_confirmation' => ['required', 'string'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required' => 'Nama lengkap wajib diisi.',
-            'email.required' => 'Alamat email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email ini sudah terdaftar.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal :min karakter.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
-            'password.same' => 'Password dan konfirmasi tidak sama.',
+            'name.required' => 'The full name field is required.',
+            'email.required' => 'The email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email has already been taken.',
+            'password.required' => 'The password field is required.',
+            'password.min' => 'The password must be at least :min characters.',
+            'password.confirmed' => 'The password confirmation does not match.',
+            'password.same' => 'The password and confirmation must match.',
         ];
     }
 }
