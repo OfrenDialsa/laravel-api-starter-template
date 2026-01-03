@@ -11,9 +11,34 @@ use Illuminate\Validation\ValidationException;
 class PasswordResetLinkController extends Controller
 {
     /**
-     * Handle an incoming password reset link request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
+     * @OA\Post(
+     * path="/api/auth/forgot-password",
+     * summary="Send Password Reset Link",
+     * description="Send a password reset link to the user's email address.",
+     * tags={"Authentication"},
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * required={"email"},
+     * @OA\Property(property="email", type="string", format="email", example="user@example.com")
+     * ),
+     * ),
+     * @OA\Response(
+     * response=200,
+     * description="Reset link sent successfully",
+     * @OA\JsonContent(
+     * @OA\Property(property="status", type="string", example="passwords.sent")
+     * )
+     * ),
+     * @OA\Response(
+     * response=422,
+     * description="Validation error or user not found",
+     * @OA\JsonContent(
+     * @OA\Property(property="message", type="string", example="We can't find a user with that email address."),
+     * @OA\Property(property="errors", type="object", example={"email": {"We can't find a user with that email address."}})
+     * )
+     * )
+     * )
      */
     public function store(Request $request): JsonResponse
     {
@@ -21,9 +46,6 @@ class PasswordResetLinkController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
         $status = Password::sendResetLink(
             $request->only('email')
         );
