@@ -21,7 +21,7 @@ class RegisteredUserController extends Controller
             $result = $this->authService->register($request->validated());
             return response()->json($result);
         } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['message' => "Gagal Register", 'error' => $request->messages()], 500);
         }
     }
 }
