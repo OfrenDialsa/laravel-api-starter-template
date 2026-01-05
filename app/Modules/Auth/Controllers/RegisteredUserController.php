@@ -60,11 +60,8 @@ class RegisteredUserController extends Controller
      */
     public function store(RegisterRequest $request)
     {
-        try {
-            $result = $this->authService->register($request->validated());
-            return response()->json($result);
-        } catch (\Throwable $e) {
-            return response()->json(['message' => "Gagal Register", 'error' => $e->getMessage()], 500);
-        }
+        $result = $this->authService->register($request->validated());
+
+        return response()->json($result, 201);
     }
 }

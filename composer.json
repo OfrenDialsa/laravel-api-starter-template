@@ -87,6 +87,7 @@
             "docker-compose exec app php artisan route:clear",
             "docker-compose exec app php artisan view:clear"
         ],
+        "docker:test": "docker exec -it Laravel-api-app  php artisan test",
         "swagger:generate": "php artisan l5-swagger:generate"
     },
     "extra": {

@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,7 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\CorsMiddleware::class,
         ]);
         $middleware->alias([
-            'verified' => EnsureEmailIsVerified::class,
             'admin' => RoleMiddleware::class,
         ]);
 
