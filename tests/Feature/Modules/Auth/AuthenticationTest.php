@@ -1,36 +1,39 @@
 <?php
 
 use App\Modules\User\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
-
-    $response = $this->post('/login', [
-        'email' => $user->email,
-        'password' => 'password',
+test('users can authenticate using the login endpoint', function () {
+    $user = User::factory()->create([
+        'password' => bcrypt($password = 'password'),
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertNoContent();
+    $response = $this->postJson('/api/auth/login', [
+        'email' => $user->email,
+        'password' => $password,
+    ]);
+
+    $response->assertStatus(200); 
+    
+    $response->assertJsonStructure(['token']); 
 });
 
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
-    $this->post('/login', [
+    $response = $this->postJson('/api/auth/login', [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
 
-    $this->assertGuest();
+    $response->assertStatus(401);
 });
 
 test('users can logout', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post('/logout');
+    $response = $this->actingAs($user, 'sanctum')
+                     ->postJson('/api/auth/logout');
 
-    $this->assertGuest();
-    $response->assertNoContent();
+    $response->assertStatus(200);
 });

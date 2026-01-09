@@ -9,7 +9,7 @@ use App\Modules\Auth\Controllers\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    // Guest routes
+
     Route::post('/register', [RegisteredUserController::class, 'store'])
         ->name('register');
 
@@ -32,7 +32,8 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
             ->name('logout');
 
-        Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, 'verify'])
+        Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
+            ->middleware(['auth:sanctum', 'signed'])
             ->name('verification.verify');
     });
 });
